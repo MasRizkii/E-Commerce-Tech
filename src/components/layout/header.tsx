@@ -94,7 +94,7 @@ export function Header() {
           </Link>
 
           <Link
-            href="/login"
+            href="/account/profile"
             aria-label="Masuk ke akun"
             title="Akun"
             className="hidden size-10 place-items-center rounded-full text-ink transition hover:bg-brand-50 hover:text-brand-600 sm:grid"
