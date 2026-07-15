@@ -7,6 +7,7 @@ export const productCategories: ProductCategory[] = [
   "Laptop",
   "Smartphone",
   "Desktop",
+  "Tablet",
   "Accessories",
 ];
 

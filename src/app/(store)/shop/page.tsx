@@ -54,7 +54,8 @@ export default async function ShopPage({
     collection: getSingleValue(rawParams.collection),
   };
 
-  const filteredProducts = getFilteredProducts(filters);
+  const filteredProducts =
+  await getFilteredProducts(filters);
   const requestedPage = parsePage(
     getSingleValue(rawParams.page),
   );

@@ -14,7 +14,6 @@ import { Container } from "@/components/ui/container";
 import { AddToCart } from "@/features/cart/components/add-to-cart";
 import { ProductGrid } from "@/features/products/components/product-grid";
 import { ProductGallery } from "@/features/products/components/product-gallery";
-import { allProducts } from "@/features/products/data";
 import {
   getProductBySlug,
   getRelatedProducts,
@@ -28,17 +27,11 @@ type ProductDetailPageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return allProducts.map((product) => ({
-    slug: product.slug,
-  }));
-}
-
 export async function generateMetadata({
   params,
 }: ProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     return {
@@ -56,13 +49,14 @@ export default async function ProductDetailPage({
   params,
 }: ProductDetailPageProps) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     notFound();
   }
 
-  const relatedProducts = getRelatedProducts(product);
+  const relatedProducts = 
+  await getRelatedProducts(product);
 
   return (
     <div className="min-h-screen bg-surface py-8 sm:py-12">
@@ -158,11 +152,8 @@ export default async function ProductDetailPage({
             </p>
 
             <p className="mt-6 max-w-xl text-sm leading-7 text-muted sm:text-base">
-              {product.name} merupakan produk pilihan untuk
-              mendukung aktivitas kerja, belajar, dan hiburan.
-              Produk tersedia dalam kondisi{" "}
-              {product.condition.toLowerCase()} dan telah melalui
-              pemeriksaan sebelum ditampilkan.
+            {product.description ||
+            `${product.name} merupakan produk pilihan untuk mendukung aktivitas kerja, belajar, dan hiburan. Produk tersedia dalam kondisi ${product.condition.toLowerCase()}.`}
             </p>
 
             <div className="my-8 border-t border-border" />

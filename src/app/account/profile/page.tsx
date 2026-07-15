@@ -1,82 +1,51 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Mail, UserRound } from "lucide-react";
 
-import { Container } from "@/components/ui/container";
+import { ProfileForm } from "@/features/profile/components/profile-form";
 import { createClient } from "@/lib/supabase/server";
-
-export const metadata: Metadata = {
-  title: "My Profile",
-};
 
 export default async function ProfilePage() {
   const supabase = await createClient();
-  const { data: authData } =
+
+  const { data: claimsData, error: claimsError } =
     await supabase.auth.getClaims();
 
-  const userId = authData?.claims?.sub;
+  const claims = claimsData?.claims;
+  const userId = claims?.sub;
 
-  if (!userId) {
-    redirect("/login");
+  if (claimsError || !claims || !userId) {
+    redirect("/login?redirect=/account/profile");
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("name, email, role")
+    .select("name, email, phone, address, role")
     .eq("id", userId)
     .single();
 
+  if (profileError) {
+    console.error("Get profile error:", profileError);
+  }
+
+  const fallbackEmail =
+    typeof claims.email === "string" ? claims.email : "";
+
+  const fallbackName =
+    typeof claims.user_metadata === "object" &&
+    claims.user_metadata !== null &&
+    "name" in claims.user_metadata &&
+    typeof claims.user_metadata.name === "string"
+      ? claims.user_metadata.name
+      : "";
+
   return (
-    <main className="py-10 sm:py-14">
-      <Container>
-        <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-brand-600">
-          Account
-        </p>
-
-        <h1 className="mt-3 font-heading text-4xl font-extrabold text-ink">
-          My Profile
-        </h1>
-
-        <div className="mt-8 max-w-2xl rounded-2xl bg-white p-6 shadow-card sm:p-8">
-          <div className="grid size-20 place-items-center rounded-full bg-brand-50 text-brand-500">
-            <UserRound className="size-9" />
-          </div>
-
-          <dl className="mt-8 space-y-5">
-            <div>
-              <dt className="text-xs font-bold uppercase tracking-wide text-muted">
-                Name
-              </dt>
-
-              <dd className="mt-1 font-heading text-lg font-bold text-ink">
-                {profile?.name ?? "User"}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-xs font-bold uppercase tracking-wide text-muted">
-                Email
-              </dt>
-
-              <dd className="mt-1 flex items-center gap-2 text-sm text-ink">
-                <Mail className="size-4 text-brand-500" />
-                {profile?.email ??
-                  String(authData.claims.email ?? "")}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-xs font-bold uppercase tracking-wide text-muted">
-                Role
-              </dt>
-
-              <dd className="mt-1 inline-flex rounded-full bg-brand-50 px-3 py-1 text-xs font-bold capitalize text-brand-600">
-                {profile?.role ?? "customer"}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      </Container>
-    </main>
+    <ProfileForm
+      profile={{
+        name: profile?.name ?? fallbackName,
+        email: profile?.email ?? fallbackEmail,
+        phone: profile?.phone ?? "",
+        address: profile?.address ?? "",
+        role: profile?.role ?? "customer",
+      }}
+    />
   );
 }

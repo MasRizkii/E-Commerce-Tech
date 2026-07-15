@@ -1,5 +1,14 @@
+import "server-only";
+
+import { cache } from "react";
+
 import { allProducts } from "@/features/products/data";
-import type { Product } from "@/features/products/types";
+import type {
+  Product,
+  ProductCategory,
+  ProductCondition,
+} from "@/features/products/types";
+import { createClient } from "@/lib/supabase/server";
 
 export type ProductSort =
   | "recommended"
@@ -22,6 +31,71 @@ export type ShopFilters = {
   collection?: string;
 };
 
+type ProductRow = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  category: string;
+  condition: string;
+  price: number;
+  stock: number;
+  image: string;
+  rating: number;
+  sold: number;
+  is_featured: boolean;
+  is_promo: boolean;
+  created_at: string;
+};
+
+const databaseCategoryToProductCategory: Record<
+  string,
+  ProductCategory
+> = {
+  laptop: "Laptop",
+  smartphone: "Smartphone",
+  desktop: "Desktop",
+  tablet: "Tablet",
+  accessories: "Accessories",
+};
+
+const productCategoryToDatabaseCategory: Record<
+  ProductCategory,
+  string
+> = {
+  Laptop: "laptop",
+  Smartphone: "smartphone",
+  Desktop: "desktop",
+  Tablet: "tablet",
+  Accessories: "accessories",
+};
+
+function mapProductRow(row: ProductRow): Product {
+  const category =
+    databaseCategoryToProductCategory[row.category] ??
+    "Accessories";
+
+  const condition: ProductCondition =
+    row.condition === "second" ? "Second" : "Brand New";
+
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description ?? "",
+    category,
+    condition,
+    price: Number(row.price),
+    stock: Number(row.stock),
+    image: row.image,
+    rating: Number(row.rating),
+    sold: Number(row.sold),
+    isFeatured: row.is_featured,
+    isPromo: row.is_promo,
+    createdAt: row.created_at,
+  };
+}
+
 function parsePrice(value?: string) {
   if (!value) {
     return undefined;
@@ -32,17 +106,63 @@ function parsePrice(value?: string) {
   return Number.isFinite(number) ? number : undefined;
 }
 
-export function getFilteredProducts(filters: ShopFilters): Product[] {
+const getDatabaseProducts = cache(
+  async (): Promise<Product[]> => {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("products")
+      .select(
+        `
+          id,
+          name,
+          slug,
+          description,
+          category,
+          condition,
+          price,
+          stock,
+          image,
+          rating,
+          sold,
+          is_featured,
+          is_promo,
+          created_at
+        `,
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Get products error:", error);
+
+      return allProducts;
+    }
+
+    return (data as ProductRow[]).map(mapProductRow);
+  },
+);
+
+export async function getAllProducts() {
+  return getDatabaseProducts();
+}
+
+export async function getFilteredProducts(
+  filters: ShopFilters,
+): Promise<Product[]> {
   const keyword = filters.q?.trim().toLowerCase();
   const minimumPrice = parsePrice(filters.minPrice);
   const maximumPrice = parsePrice(filters.maxPrice);
 
-  let products = [...allProducts];
+  let products = [...(await getDatabaseProducts())];
 
   if (keyword) {
     products = products.filter((product) => {
-      const searchableText =
-        `${product.name} ${product.category} ${product.condition}`.toLowerCase();
+      const searchableText = `
+        ${product.name}
+        ${product.description ?? ""}
+        ${product.category}
+        ${product.condition}
+      `.toLowerCase();
 
       return searchableText.includes(keyword);
     });
@@ -92,7 +212,9 @@ export function getFilteredProducts(filters: ShopFilters): Product[] {
       break;
 
     case "promo":
-      products = products.filter((product) => product.isPromo);
+      products = products.filter(
+        (product) => product.isPromo,
+      );
       break;
   }
 
@@ -123,7 +245,10 @@ export function getFilteredProducts(filters: ShopFilters): Product[] {
     default:
       if (!filters.collection) {
         products.sort((firstProduct, secondProduct) => {
-          if (firstProduct.isFeatured !== secondProduct.isFeatured) {
+          if (
+            firstProduct.isFeatured !==
+            secondProduct.isFeatured
+          ) {
             return firstProduct.isFeatured ? -1 : 1;
           }
 
@@ -135,21 +260,118 @@ export function getFilteredProducts(filters: ShopFilters): Product[] {
   return products;
 }
 
-export function getProductBySlug(slug: string) {
-  return allProducts.find(
-    (product) => product.slug === slug,
-  );
-}
+export const getProductBySlug = cache(
+  async (slug: string): Promise<Product | undefined> => {
+    const supabase = await createClient();
 
-export function getRelatedProducts(
+    const { data, error } = await supabase
+      .from("products")
+      .select(
+        `
+          id,
+          name,
+          slug,
+          description,
+          category,
+          condition,
+          price,
+          stock,
+          image,
+          rating,
+          sold,
+          is_featured,
+          is_promo,
+          created_at
+        `,
+      )
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Get product by slug error:", error);
+
+      return allProducts.find(
+        (product) => product.slug === slug,
+      );
+    }
+
+    if (!data) {
+      return undefined;
+    }
+
+    return mapProductRow(data as ProductRow);
+  },
+);
+
+export async function getRelatedProducts(
   product: Product,
   limit = 4,
-) {
-  return allProducts
-    .filter(
-      (relatedProduct) =>
-        relatedProduct.category === product.category &&
-        relatedProduct.id !== product.id,
+): Promise<Product[]> {
+  const supabase = await createClient();
+
+  const databaseCategory =
+    productCategoryToDatabaseCategory[product.category];
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      `
+        id,
+        name,
+        slug,
+        description,
+        category,
+        condition,
+        price,
+        stock,
+        image,
+        rating,
+        sold,
+        is_featured,
+        is_promo,
+        created_at
+      `,
+    )
+    .eq("category", databaseCategory)
+    .neq("id", product.id)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Get related products error:", error);
+
+    return allProducts
+      .filter(
+        (relatedProduct) =>
+          relatedProduct.category === product.category &&
+          relatedProduct.id !== product.id,
+      )
+      .slice(0, limit);
+  }
+
+  return (data as ProductRow[]).map(mapProductRow);
+}
+
+export async function getFeaturedProducts(
+  limit = 4,
+): Promise<Product[]> {
+  const products = await getDatabaseProducts();
+
+  return products
+    .filter((product) => product.isFeatured)
+    .slice(0, limit);
+}
+
+export async function getNewArrivalProducts(
+  limit = 4,
+): Promise<Product[]> {
+  const products = await getDatabaseProducts();
+
+  return [...products]
+    .sort(
+      (firstProduct, secondProduct) =>
+        new Date(secondProduct.createdAt).getTime() -
+        new Date(firstProduct.createdAt).getTime(),
     )
     .slice(0, limit);
 }

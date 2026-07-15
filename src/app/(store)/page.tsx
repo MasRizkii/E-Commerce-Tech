@@ -4,12 +4,17 @@ import { PromoBanner } from "@/features/home/components/promo-banner";
 import { PromoCards } from "@/features/home/components/promo-cards";
 import { QuickMenu } from "@/features/home/components/quick-menu";
 import {
-  featuredProducts,
-  newArrivalProducts,
-} from "@/features/products/data";
+  getFeaturedProducts,
+  getNewArrivalProducts,
+} from "@/features/products/queries";
 import { Container } from "@/components/ui/container";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [featuredProducts, newArrivalProducts] =
+  await Promise.all([
+    getFeaturedProducts(4),
+    getNewArrivalProducts(4),
+  ]);
   return (
     <div className="bg-store-bg py-5 sm:py-8">
       <Container className="space-y-7 sm:space-y-9">
