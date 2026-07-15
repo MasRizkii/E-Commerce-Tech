@@ -81,7 +81,7 @@ export function Header() {
           </Link>
 
           <Link
-            href="/cart"
+            href="/account/cart"
             aria-label="Buka keranjang belanja"
             title="Keranjang"
             className="relative grid size-10 place-items-center rounded-full text-ink transition hover:bg-brand-50 hover:text-brand-600"

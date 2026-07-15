@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LogOut } from "lucide-react";
 
-import { BrandLogo } from "@/components/layout/brand-logo";
+import { AccountSidebar } from "@/components/layout/account-sidebar";
+import { BackButton } from "@/components/layout/back-button";
+import { Header } from "@/components/layout/header";
 import { Container } from "@/components/ui/container";
-import { logoutAction } from "@/features/auth/actions";
 import { createClient } from "@/lib/supabase/server";
 
 type AccountLayoutProps = Readonly<{
@@ -21,48 +20,41 @@ export default async function AccountLayout({
     redirect("/login?redirect=/account/profile");
   }
 
+  const userId = data.claims.sub;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("name, email")
+    .eq("id", userId)
+    .single();
+
+  const fallbackEmail =
+    typeof data.claims.email === "string" ? data.claims.email : "";
+
+  const fallbackName =
+    typeof data.claims.user_metadata === "object" &&
+    data.claims.user_metadata !== null &&
+    "name" in data.claims.user_metadata &&
+    typeof data.claims.user_metadata.name === "string"
+      ? data.claims.user_metadata.name
+      : "";
+
+  const sidebarName = profile?.name ?? fallbackName;
+  const sidebarEmail = profile?.email ?? fallbackEmail;
+
   return (
     <div className="min-h-screen bg-surface">
-      <header className="border-b border-border bg-white">
-        <Container className="flex min-h-20 items-center justify-between gap-6">
-          <BrandLogo />
+      <Header />
 
-          <nav className="hidden items-center gap-6 sm:flex">
-            <Link
-              href="/account/profile"
-              className="text-sm font-bold text-ink hover:text-brand-600"
-            >
-              Profile
-            </Link>
+      <Container className="pt-6">
+        <BackButton />
+      </Container>
 
-            <Link
-              href="/account/orders"
-              className="text-sm font-bold text-ink hover:text-brand-600"
-            >
-              My Orders
-            </Link>
+      <Container className="grid gap-6 py-6 lg:grid-cols-[280px_1fr] lg:items-start">
+        <AccountSidebar name={sidebarName} email={sidebarEmail} />
 
-            <Link
-              href="/cart"
-              className="text-sm font-bold text-ink hover:text-brand-600"
-            >
-              Cart
-            </Link>
-          </nav>
-
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-4 text-sm font-bold text-red-500 transition hover:border-red-200 hover:bg-red-50"
-            >
-              <LogOut className="size-4" />
-              Logout
-            </button>
-          </form>
-        </Container>
-      </header>
-
-      {children}
+        <main>{children}</main>
+      </Container>
     </div>
   );
 }

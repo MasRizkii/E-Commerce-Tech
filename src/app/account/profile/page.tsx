@@ -26,6 +26,11 @@ export default async function ProfilePage() {
     console.error("Get profile error:", profileError);
   }
 
+  const { count: ordersCount } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
   const fallbackEmail =
     typeof claims.email === "string" ? claims.email : "";
 
@@ -45,6 +50,10 @@ export default async function ProfilePage() {
         phone: profile?.phone ?? "",
         address: profile?.address ?? "",
         role: profile?.role ?? "customer",
+      }}
+      stats={{
+        totalOrders: ordersCount ?? 0,
+        reviewsAdded: 0,
       }}
     />
   );

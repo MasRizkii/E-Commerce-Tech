@@ -21,8 +21,7 @@ const slides = [
       "Performa lebih cepat untuk bekerja, belajar, dan membuat karya terbaikmu.",
     image: "/images/banners/hero-macbook.png",
     href: "/shop?category=laptop",
-    background:
-      "from-[#dcefee] via-[#e7f5f4] to-[#cbe6e5]",
+    background: "from-[#dcefee] via-[#e7f5f4] to-[#cbe6e5]",
   },
   {
     id: "iphone-deals",
@@ -33,8 +32,7 @@ const slides = [
       "Temukan iPhone pilihan dengan kondisi dan harga yang sesuai kebutuhanmu.",
     image: "/images/banners/hero-iphone.png",
     href: "/shop?category=smartphone",
-    background:
-      "from-[#e8efff] via-[#f3f6ff] to-[#dce7ff]",
+    background: "from-[#e8efff] via-[#f3f6ff] to-[#dce7ff]",
   },
   {
     id: "desktop-deals",
@@ -45,14 +43,12 @@ const slides = [
       "Performa desktop dalam desain ringkas untuk ruang kerja yang lebih bersih.",
     image: "/images/banners/hero-mac-mini.png",
     href: "/shop?category=desktop",
-    background:
-      "from-[#f6ece4] via-[#fff7ef] to-[#f3dfd0]",
+    background: "from-[#f6ece4] via-[#fff7ef] to-[#f3dfd0]",
   },
 ] as const;
 
 export function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeSlide = slides[activeIndex];
 
   function showPreviousSlide() {
     setActiveIndex((current) =>
@@ -69,68 +65,87 @@ export function HeroSlider() {
   return (
     <section
       aria-label="Featured promotions"
-      className={cn(
-        "relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br",
-        activeSlide.background,
-      )}
+      className="relative h-[600px] overflow-hidden rounded-[1.75rem] border border-white/50 bg-white/25 shadow-[0_8px_40px_-12px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:h-[460px] lg:h-[430px]"
     >
       <div
         aria-live="polite"
-        className="grid min-h-[430px] items-center gap-8 px-6 py-12 sm:px-12 lg:grid-cols-2 lg:px-20"
+        className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
+        style={{
+          width: `${slides.length * 100}%`,
+          transform: `translateX(-${
+            activeIndex * (100 / slides.length)
+          }%)`,
+        }}
       >
-        <div className="relative z-10 max-w-xl">
-          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-brand-600">
-            {activeSlide.eyebrow}
-          </p>
-
-          <h1 className="mt-4 font-heading text-4xl font-extrabold leading-[1.08] text-ink sm:text-5xl lg:text-[56px]">
-            {activeSlide.title}
-
-            <span className="mt-1 block text-brand-500">
-              {activeSlide.highlight}
-            </span>
-          </h1>
-
-          <p className="mt-5 max-w-md text-sm leading-6 text-muted sm:text-base">
-            {activeSlide.description}
-          </p>
-
-          <Link
-            href={activeSlide.href}
-            className="mt-7 inline-flex min-h-12 items-center justify-center rounded-lg bg-brand-500 px-6 font-heading text-sm font-bold text-white shadow-md shadow-brand-500/20 transition hover:-translate-y-0.5 hover:bg-brand-600"
+        {slides.map((slide) => (
+          <div
+            key={slide.id}
+            className="relative flex h-full shrink-0 flex-col items-center overflow-hidden px-6 py-10 sm:px-12 lg:grid lg:grid-cols-2 lg:items-center lg:px-20 lg:py-0"
+            style={{ width: `${100 / slides.length}%` }}
           >
-            Shop Now
-          </Link>
-        </div>
-
-        <div className="relative min-h-[220px] lg:min-h-[330px]">
-          <div className="absolute inset-0 grid place-items-center text-brand-300/60">
-            <Laptop
-              aria-hidden="true"
-              className="size-36 sm:size-44"
-              strokeWidth={0.8}
+            <div
+              className={cn(
+                "absolute inset-0 -z-10 bg-gradient-to-br opacity-60",
+                slide.background,
+              )}
             />
-          </div>
 
-          <Image
-            key={activeSlide.image}
-            src={activeSlide.image}
-            alt=""
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
-            className="object-contain drop-shadow-2xl"
-          />
-        </div>
+            <div className="absolute inset-0 -z-10 bg-white/10" />
+
+            <div className="relative z-10 flex min-h-0 max-w-xl flex-1 flex-col justify-center lg:flex-none">
+              <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-brand-600">
+                {slide.eyebrow}
+              </p>
+
+              <h1 className="mt-4 font-heading text-4xl font-extrabold leading-[1.08] text-ink sm:text-5xl lg:text-[56px]">
+                {slide.title}
+
+                <span className="mt-1 block text-brand-500">
+                  {slide.highlight}
+                </span>
+              </h1>
+
+              <p className="mt-5 line-clamp-3 max-w-md text-sm leading-6 text-muted sm:text-base">
+                {slide.description}
+              </p>
+
+              <Link
+                href={slide.href}
+                className="mt-7 inline-flex min-h-12 w-fit items-center justify-center rounded-lg bg-brand-500 px-6 font-heading text-sm font-bold text-white shadow-md shadow-brand-500/20 transition hover:-translate-y-0.5 hover:bg-brand-600"
+              >
+                Shop Now
+              </Link>
+            </div>
+
+            <div className="relative mt-8 h-[200px] w-full shrink-0 sm:h-[240px] lg:mt-0 lg:h-[320px]">
+              <div className="absolute inset-0 grid place-items-center text-brand-300/60">
+                <Laptop
+                  aria-hidden="true"
+                  className="size-36 sm:size-44"
+                  strokeWidth={0.8}
+                />
+              </div>
+
+              <Image
+                src={slide.image}
+                alt=""
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
+                className="object-contain drop-shadow-2xl"
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
       <button
         type="button"
         aria-label="Promo sebelumnya"
         onClick={showPreviousSlide}
-        className="absolute left-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white/70 text-ink shadow-sm backdrop-blur transition hover:bg-white"
+        className="absolute left-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/50 bg-white/40 text-ink shadow-sm backdrop-blur-md transition hover:-translate-x-0.5 hover:bg-white/70"
       >
         <ChevronLeft aria-hidden="true" className="size-5" />
       </button>
@@ -139,7 +154,7 @@ export function HeroSlider() {
         type="button"
         aria-label="Promo berikutnya"
         onClick={showNextSlide}
-        className="absolute right-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white/70 text-ink shadow-sm backdrop-blur transition hover:bg-white"
+        className="absolute right-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/50 bg-white/40 text-ink shadow-sm backdrop-blur-md transition hover:translate-x-0.5 hover:bg-white/70"
       >
         <ChevronRight aria-hidden="true" className="size-5" />
       </button>
@@ -153,7 +168,7 @@ export function HeroSlider() {
             aria-current={index === activeIndex ? "true" : undefined}
             onClick={() => setActiveIndex(index)}
             className={cn(
-              "h-2 rounded-full transition-all",
+              "h-2 rounded-full transition-all duration-500",
               index === activeIndex
                 ? "w-7 bg-brand-500"
                 : "w-2 bg-white/90 hover:bg-brand-300",

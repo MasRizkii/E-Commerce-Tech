@@ -93,3 +93,50 @@ img {
   background: var(--color-brand-200);
   color: var(--color-brand-900);
 }
+
+.bg-futuristic {
+  position: relative;
+  isolation: isolate;
+  background-image:
+    radial-gradient(900px 480px at 6% -12%, rgb(71 120 230 / 20%), transparent 60%),
+    radial-gradient(760px 420px at 108% 6%, rgb(255 139 61 / 16%), transparent 55%),
+    radial-gradient(680px 460px at 46% 118%, rgb(29 180 209 / 16%), transparent 60%),
+    linear-gradient(160deg, #eef4ff 0%, #f7fafc 42%, #eaf8f6 100%);
+}
+
+.bg-futuristic::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(71 120 230 / 7%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(71 120 230 / 7%) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 85% 55% at 50% 0%, black 35%, transparent 85%);
+  -webkit-mask-image: radial-gradient(
+    ellipse 85% 55% at 50% 0%,
+    black 35%,
+    transparent 85%
+  );
+}
+
+.bg-futuristic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    rgb(47 52 55 / 6%) 1px,
+    transparent 1px
+  );
+  background-size: 16px 16px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 100%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 60% at 50% 100%,
+    black 20%,
+    transparent 80%
+  );
+}

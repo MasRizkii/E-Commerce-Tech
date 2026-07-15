@@ -16,8 +16,8 @@ export default async function HomePage() {
     getNewArrivalProducts(4),
   ]);
   return (
-    <div className="bg-store-bg py-5 sm:py-8">
-      <Container className="space-y-7 sm:space-y-9">
+    <div className="bg-futuristic py-5 sm:py-8">
+      <Container className="relative z-10 space-y-7 sm:space-y-9">
         <HeroSlider />
 
         <QuickMenu />
