@@ -1,7 +1,13 @@
-export default function Page() {
-  return (
-    <main className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="text-3xl font-bold">Shopping Cart</h1>
-    </main>
-  )
+import type { Metadata } from "next";
+
+import { CartView } from "@/features/cart/components/cart-view";
+
+export const metadata: Metadata = {
+  title: "Cart",
+  description:
+    "Periksa dan atur produk yang berada di keranjang belanja.",
+};
+
+export default function CartPage() {
+  return <CartView />;
 }

@@ -9,9 +9,21 @@ import { MobileNavigation } from "@/components/layout/mobile-navigation";
 import { Container } from "@/components/ui/container";
 import { storeNavigation } from "@/config/navigation";
 import { cn } from "@/lib/utils";
+import {
+  useCartHydration,
+  useCartStore,
+} from "@/features/cart/cart-store";
 
 export function Header() {
   const pathname = usePathname();
+  const hasCartHydrated = useCartHydration();
+
+  const cartQuantity = useCartStore((state) =>
+  state.items.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  ),
+);
 
   function isActiveRoute(href: string) {
     if (href === "/") {
@@ -77,7 +89,7 @@ export function Header() {
             <ShoppingCart aria-hidden="true" className="size-[22px]" />
 
             <span className="absolute right-0 top-0 grid min-h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[9px] font-bold leading-none text-white ring-2 ring-white">
-              0
+              {hasCartHydrated ? cartQuantity : 0}
             </span>
           </Link>
 
