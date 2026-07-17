@@ -18,8 +18,17 @@ export function MobileNavigation() {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
     return () => {
       document.body.style.overflow = originalOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen]);
 
@@ -30,7 +39,7 @@ export function MobileNavigation() {
         aria-label="Buka menu navigasi"
         aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}
-        className="grid size-10 place-items-center rounded-full border border-border text-ink transition hover:border-brand-500 hover:text-brand-600 md:hidden"
+        className="grid size-10 shrink-0 place-items-center rounded-full border border-border text-ink transition hover:border-brand-500 hover:text-brand-600 md:hidden"
       >
         <span className="sr-only">Buka menu</span>
 
@@ -42,19 +51,26 @@ export function MobileNavigation() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[100] md:hidden">
+        <div
+          className="fixed inset-0 isolate z-[999] md:hidden"
+          style={{ height: "100dvh" }}
+        >
           <button
             type="button"
             aria-label="Tutup menu navigasi"
             onClick={() => setIsOpen(false)}
-            className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+            className="absolute inset-0 z-0 bg-black/50 backdrop-blur-[2px]"
           />
 
           <aside
             role="dialog"
             aria-modal="true"
             aria-label="Navigasi mobile"
-            className="absolute right-0 top-0 flex h-full w-[min(84%,340px)] flex-col bg-white p-6 shadow-2xl"
+            style={{
+              height: "100dvh",
+              backgroundColor: "#ffffff",
+            }}
+            className="relative z-10 ml-auto flex w-[85%] max-w-[340px] flex-col overflow-y-auto bg-white p-6 shadow-2xl"
           >
             <div className="flex items-center justify-between border-b border-border pb-5">
               <BrandLogo showNameOnMobile />
@@ -63,7 +79,7 @@ export function MobileNavigation() {
                 type="button"
                 aria-label="Tutup menu"
                 onClick={() => setIsOpen(false)}
-                className="grid size-10 place-items-center rounded-full text-ink transition hover:bg-slate-100"
+                className="grid size-10 shrink-0 place-items-center rounded-full text-ink transition hover:bg-slate-100"
               >
                 <X aria-hidden="true" className="size-5" />
               </button>

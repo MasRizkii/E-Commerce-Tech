@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -49,6 +49,8 @@ const slides = [
 
 export function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchDeltaX = useRef(0);
 
   function showPreviousSlide() {
     setActiveIndex((current) =>
@@ -62,14 +64,41 @@ export function HeroSlider() {
     );
   }
 
+  function handleTouchStart(event: React.TouchEvent) {
+    touchStartX.current = event.touches[0].clientX;
+    touchDeltaX.current = 0;
+  }
+
+  function handleTouchMove(event: React.TouchEvent) {
+    if (touchStartX.current === null) return;
+    touchDeltaX.current =
+      event.touches[0].clientX - touchStartX.current;
+  }
+
+  function handleTouchEnd() {
+    const SWIPE_THRESHOLD = 40;
+
+    if (touchDeltaX.current > SWIPE_THRESHOLD) {
+      showPreviousSlide();
+    } else if (touchDeltaX.current < -SWIPE_THRESHOLD) {
+      showNextSlide();
+    }
+
+    touchStartX.current = null;
+    touchDeltaX.current = 0;
+  }
+
   return (
     <section
       aria-label="Featured promotions"
-      className="relative h-[600px] overflow-hidden rounded-[1.75rem] border border-white/50 bg-white/25 shadow-[0_8px_40px_-12px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:h-[460px] lg:h-[430px]"
+      className="relative h-[600px] overflow-hidden rounded-[1.75rem] border border-white/50 bg-white/25 shadow-[0_8px_40px_-12px_rgba(15,23,42,0.25)] backdrop-blur-2xl lg:h-[430px]"
     >
       <div
         aria-live="polite"
-        className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="flex h-full touch-pan-y transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
         style={{
           width: `${slides.length * 100}%`,
           transform: `translateX(-${
@@ -80,7 +109,7 @@ export function HeroSlider() {
         {slides.map((slide) => (
           <div
             key={slide.id}
-            className="relative flex h-full shrink-0 flex-col items-center overflow-hidden px-6 py-10 sm:px-12 lg:grid lg:grid-cols-2 lg:items-center lg:px-20 lg:py-0"
+            className="relative flex h-full shrink-0 flex-col items-center justify-center overflow-hidden px-6 py-10 sm:px-12 lg:grid lg:grid-cols-2 lg:items-center lg:px-20 lg:py-0"
             style={{ width: `${100 / slides.length}%` }}
           >
             <div
@@ -92,7 +121,7 @@ export function HeroSlider() {
 
             <div className="absolute inset-0 -z-10 bg-white/10" />
 
-            <div className="relative z-10 flex min-h-0 max-w-xl flex-1 flex-col justify-center lg:flex-none">
+            <div className="relative z-10 flex min-h-0 max-w-xl flex-col justify-center">
               <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-brand-600">
                 {slide.eyebrow}
               </p>
@@ -145,7 +174,7 @@ export function HeroSlider() {
         type="button"
         aria-label="Promo sebelumnya"
         onClick={showPreviousSlide}
-        className="absolute left-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/50 bg-white/40 text-ink shadow-sm backdrop-blur-md transition hover:-translate-x-0.5 hover:bg-white/70"
+        className="absolute left-3 top-1/2 z-20 hidden size-10 -translate-y-1/2 place-items-center rounded-full border border-white/50 bg-white/40 text-ink shadow-sm backdrop-blur-md transition hover:-translate-x-0.5 hover:bg-white/70 lg:grid"
       >
         <ChevronLeft aria-hidden="true" className="size-5" />
       </button>
@@ -154,7 +183,7 @@ export function HeroSlider() {
         type="button"
         aria-label="Promo berikutnya"
         onClick={showNextSlide}
-        className="absolute right-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/50 bg-white/40 text-ink shadow-sm backdrop-blur-md transition hover:translate-x-0.5 hover:bg-white/70"
+        className="absolute right-3 top-1/2 z-20 hidden size-10 -translate-y-1/2 place-items-center rounded-full border border-white/50 bg-white/40 text-ink shadow-sm backdrop-blur-md transition hover:translate-x-0.5 hover:bg-white/70 lg:grid"
       >
         <ChevronRight aria-hidden="true" className="size-5" />
       </button>
